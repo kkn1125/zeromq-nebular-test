@@ -6,7 +6,7 @@ Object.assign(
       const wrap = function (...arg) {
         value.call(
           console,
-          "[DEV] ::>",
+          "[Client DEV] ::>",
           ...arg,
           `<:: (${new Date().toLocaleDateString("ko")})`
         );

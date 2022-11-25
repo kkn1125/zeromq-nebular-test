@@ -1,4 +1,5 @@
 const zmq = require("zeromq");
+const { dev } = require("../utils/tools");
 
 class ProxyBroker {
   #sock = new zmq.Request();
@@ -10,11 +11,12 @@ class ProxyBroker {
   }
 
   async send(data) {
+    dev.log('Send Data:', data)
     await this.#sock.send(data);
     const decoder = new TextDecoder();
     const [result] = await this.#sock.receive();
     const content = decoder.decode(result);
-    console.log("[Client] Received ", content.toString());
+    dev.log("Received ", content.toString());
     return JSON.parse(content);
   }
 }

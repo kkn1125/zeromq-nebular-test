@@ -14,12 +14,14 @@ async function runServer() {
     const decoder = new TextDecoder();
     const decoded = decoder.decode(msg);
     const json = JSON.parse(decoded);
-    console.log("[Server] Received ", json.uuid);
+    console.log("[Server DEV] ::> Received: ", json.uuid);
     await sock.send(
       encoder.encode(
         JSON.stringify({
-          ip: "222.222.15.23",
-          port: 3333,
+          ip: `${parseInt(Math.random() * 255)}.${parseInt(
+            Math.random() * 255
+          )}.${parseInt(Math.random() * 255)}.${parseInt(Math.random() * 255)}`,
+          port: parseInt(Math.random() * 8999) + 1000,
         })
       )
     );

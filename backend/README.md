@@ -1,7 +1,7 @@
 # 실행 방법
 
 ```bash
-$ bun run dev
+$ npm run dev
 # dev:api dev:proxy 동시 실행
 ```
 

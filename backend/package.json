@@ -20,7 +20,8 @@
     "dev:proxy": "cross-env NODE_ENV=development CHOKIDAR_USEPOLLING=true nodemon proxyBroker.js",
     "prod:proxy": "cross-env NODE_ENV=production CHOKIDAR_USEPOLLING=true nodemon proxyBroker.js",
     "dev": "concurrently --kill-others-on-fail \"bun run dev:api\" \"bun run dev:proxy\"",
-    "prod": "concurrently --kill-others-on-fail \"bun run prod:api\" \"bun run pord:proxy\""
+    "prod": "concurrently --kill-others-on-fail \"bun run prod:api\" \"bun run pord:proxy\"",
+    "dev:":""
   },
   "keywords": [],
   "author": "",

@@ -18,8 +18,9 @@ User.middleware = (req, res) => {
 
 User.findAll = async (req, res) => {
   try {
-    dev.log(req.query);
+    dev.log("Query: ", req.query);
     const uuid = req.query.uuid;
+    const query = req.query.query;
     const content = await broker.send(
       encoder.encode(
         JSON.stringify({
@@ -31,6 +32,7 @@ User.findAll = async (req, res) => {
     res.status(200).json({
       ok: true,
       uuid,
+      query,
       ...content,
     });
   } catch (e) {}
@@ -38,7 +40,7 @@ User.findAll = async (req, res) => {
 
 User.findOne = async (req, res) => {
   try {
-    dev.log(req.query);
+    dev.log("Query: ", req.query);
     const uuid = req.query.uuid;
     const query = req.query.query;
     const content = await broker.send(
