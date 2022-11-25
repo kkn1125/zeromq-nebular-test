@@ -14,7 +14,9 @@ async function runServer() {
     const decoder = new TextDecoder();
     const decoded = decoder.decode(msg);
     const json = JSON.parse(decoded);
+
     console.log("[Server DEV] ::> Received: ", json.uuid);
+
     await sock.send(
       encoder.encode(
         JSON.stringify({
