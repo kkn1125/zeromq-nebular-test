@@ -1,4 +1,5 @@
 const dev = function () {};
+const preffix = "Client";
 Object.assign(
   dev,
   Object.fromEntries(
@@ -6,10 +7,11 @@ Object.assign(
       const wrap = function (...arg) {
         value.call(
           console,
-          "[Client DEV] ::>",
+          `🚀 [${dev.preffix || preffix} DEV] ::>`,
           ...arg,
           `<:: (${new Date().toLocaleDateString("ko")})`
         );
+        dev.preffix = "";
       };
       if (key === "memory") {
         return [key, value];

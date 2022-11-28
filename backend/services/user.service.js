@@ -10,12 +10,6 @@ const encoder = new TextEncoder();
 let index = 0;
 // let method = null;
 
-User.middleware = (req, res) => {
-  index++;
-  // method = req.method;
-  return User;
-};
-
 User.findAll = async (req, res) => {
   try {
     dev.log("Query: ", req.query);

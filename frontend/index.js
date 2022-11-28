@@ -3,6 +3,7 @@ import axios from "axios";
 
 document.querySelector("#findall").addEventListener("click", () => {
   const uuid = v4();
+  document.querySelector("#result").innerHTML = "loading...";
   axios
     .get("http://localhost:3000/v1/api/users", {
       params: { uuid: uuid, query: "nebula query" },
@@ -19,6 +20,7 @@ document.querySelector("#findall").addEventListener("click", () => {
 
 document.querySelector("#findone").addEventListener("click", () => {
   const uuid = v4();
+  document.querySelector("#result").innerHTML = "loading...";
   axios
     .get("http://localhost:3000/v1/api/users/1", {
       params: { uuid: uuid, query: "nebula query" },
@@ -32,3 +34,18 @@ document.querySelector("#findone").addEventListener("click", () => {
           .join("<br />");
     });
 });
+
+// let audio = null;
+
+// fetch("./src/Mulholland.mp3").then((result) => {
+//   console.log(result);
+//   audio = document.createElement("audio");
+//   audio.src = result.url;
+//   // audio.play();
+// });
+// document.querySelector("#on").onclick = () => {
+//   audio?.play();
+// };
+// document.querySelector("#off").onclick = () => {
+//   audio?.pause();
+// };

@@ -3,6 +3,7 @@
 //  Expects "Hello" from client, replies with "World"
 
 const zmq = require("zeromq");
+const { dev } = require("./utils/tools");
 
 async function runServer() {
   const sock = new zmq.Reply();
@@ -15,7 +16,8 @@ async function runServer() {
     const decoded = decoder.decode(msg);
     const json = JSON.parse(decoded);
 
-    console.log("[Server DEV] ::> Received: ", json.uuid);
+    dev.preffix = "Server";
+    dev.log("Received", json.uuid);
 
     await sock.send(
       encoder.encode(

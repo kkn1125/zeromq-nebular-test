@@ -6,6 +6,8 @@ Ips.findAll = (req, res) => {
   try {
     res.status(200).json({
       ok: true,
+      ip: req.body.ip,
+      port: req.body.port,
       nebula: req.body.nebula,
     });
   } catch (e) {}
@@ -15,6 +17,8 @@ Ips.findOne = (req, res) => {
   try {
     res.status(200).json({
       ok: true,
+      ip: req.body.ip,
+      port: req.body.port,
       nebula: req.body.nebula,
     });
   } catch (e) {}
@@ -24,6 +28,8 @@ Ips.create = (req, res) => {
   try {
     res.status(200).json({
       ok: true,
+      ip: req.body.ip,
+      port: req.body.port,
       nebula: req.body.nebula,
     });
   } catch (e) {}
@@ -33,6 +39,8 @@ Ips.update = (req, res) => {
   try {
     res.status(200).json({
       ok: true,
+      ip: req.body.ip,
+      port: req.body.port,
       nebula: req.body.nebula,
     });
   } catch (e) {}
@@ -42,6 +50,8 @@ Ips.delete = (req, res) => {
   try {
     res.status(200).json({
       ok: true,
+      ip: req.body.ip,
+      port: req.body.port,
       nebula: req.body.nebula,
     });
   } catch (e) {}

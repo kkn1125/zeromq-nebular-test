@@ -13,6 +13,7 @@ const cors = require("cors");
 const multer = require("multer");
 const { userController } = require("./controller/user.controller");
 const { ipsController } = require("./controller/ips.controller");
+const { dev } = require("./utils/tools");
 const formDataMiddleWare = multer();
 
 /* 전역 변수 */
@@ -23,6 +24,11 @@ app.use(formDataMiddleWare.any());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/v1/api/users", (req, res, next) => {
+  dev.log("custom middleware");
+  next();
+});
 
 app.use("/v1/api", userController);
 app.use("/v1/api", ipsController);
