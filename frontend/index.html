@@ -5,6 +5,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Test Front-end</title>
+    <script
+      src="https://www.gstatic.com/draco/versioned/decoders/1.4.1/draco_wasm_wrapper.js"
+    >
+      // It is recommended to always pull your Draco JavaScript and WASM decoders
+      // from the above URL. Users will benefit from having the Draco decoder in
+      // cache as more sites start using the static URL.
+    </script>
+    <script src="dracoEncoder.js" type="module"></script>
+    <script src="rendering.js" type="module"></script>
   </head>
   <body>
     <h1>Test Front-end</h1>
@@ -14,6 +23,7 @@
     <pre id="result"></pre>
     <button id="on">on</button>
     <button id="off">off</button>
+    <div id="container"></div>
     <script src="index.js" type="module"></script>
   </body>
 </html>
