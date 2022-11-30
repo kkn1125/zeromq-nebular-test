@@ -34,18 +34,3 @@ document.querySelector("#findone").addEventListener("click", () => {
           .join("<br />");
     });
 });
-
-// let audio = null;
-
-// fetch("./src/Mulholland.mp3").then((result) => {
-//   console.log(result);
-//   audio = document.createElement("audio");
-//   audio.src = result.url;
-//   // audio.play();
-// });
-// document.querySelector("#on").onclick = () => {
-//   audio?.play();
-// };
-// document.querySelector("#off").onclick = () => {
-//   audio?.pause();
-// };
