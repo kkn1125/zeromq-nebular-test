@@ -1,7 +1,12 @@
 const path = require("path");
 const dotenv = require("dotenv");
+const { dev } = require("../backend/utils/tools");
 
 const MODE = process.env.NODE_ENV;
+
+dotenv.config({
+  path: path.join(__dirname, `.env`),
+});
 
 dotenv.config({
   path: path.join(__dirname, `.env.${MODE}`),
@@ -11,7 +16,7 @@ console.log(process.env.SERVERS);
 console.log(process.env.USERNAME);
 console.log(process.env.PASSWORD);
 console.log(process.env.SPACE);
-console.log(process.env.POOLSIZE);
+dev.log("POOL %d개 생성", process.env.POOLSIZE);
 console.log(process.env.BUFFERSIZE);
 console.log(process.env.EXECUTETIMEOUT);
 console.log(process.env.PINGINTERVAL);

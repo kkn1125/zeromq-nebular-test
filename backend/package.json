@@ -9,14 +9,10 @@
   "scripts": {
     "dev:api": "cross-env NODE_ENV=development CHOKIDAR_USEPOLLING=true nodemon api.js",
     "prod:api": "cross-env NODE_ENV=production CHOKIDAR_USEPOLLING=true nodemon api.js",
-    "dev:proxy": "cross-env NODE_ENV=development CHOKIDAR_USEPOLLING=true nodemon proxyBroker.js",
-    "prod:proxy": "cross-env NODE_ENV=production CHOKIDAR_USEPOLLING=true nodemon proxyBroker.js",
-    "dev:nebula": "cross-env NODE_ENV=development CHOKIDAR_USEPOLLING=true nodemon database/nebula.db.js",
-    "dev": "concurrently --kill-others-on-fail \"bun run dev:api\" \"bun run dev:proxy\"",
-    "prod": "concurrently --kill-others-on-fail \"bun run prod:api\" \"bun run pord:proxy\""
+    "dev": "concurrently --kill-others-on-fail \"npm run dev:api\"",
+    "prod": "concurrently --kill-others-on-fail \"npm run prod:api\""
   },
   "dependencies": {
-    "@nebula-contrib/nebula-nodejs": "^3.0.1",
     "axios": "^1.2.0",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",

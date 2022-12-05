@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "@nebula-contrib/nebula-nodejs": "^3.0.1",
+    "dotenv": "^16.0.3",
+    "zeromq": "6.0.0-beta.10"
+  },
+  "name": "proxyserver",
+  "version": "1.0.0",
+  "main": "proxyServer.js",
+  "scripts": {
+    "dev:proxy": "cross-env NODE_ENV=development CHOKIDAR_USEPOLLING=true nodemon proxyServer.js",
+    "prod:proxy": "cross-env NODE_ENV=production CHOKIDAR_USEPOLLING=true nodemon proxyServer/proxyServer.js",
+    "dev": "concurrently --kill-others-on-fail \"bun run dev:proxy\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

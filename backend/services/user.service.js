@@ -1,8 +1,8 @@
 const User = require("../models/User");
 const { dev } = require("../utils/tools");
 const axios = require("axios");
-const ProxyBroker = require("../models/proxyBroker");
-const broker = new ProxyBroker();
+const ProxyRequest = require("../models/proxyRequest");
+const broker = new ProxyRequest();
 const encoder = new TextEncoder();
 /* json메서드 사용시 데이터 필드가 undefined면 제외하고 json 객체를 response 한다. */
 // const responses = new Map();
@@ -51,6 +51,28 @@ User.findOne = async (req, res) => {
       query,
       ...content,
     });
+  } catch (e) {}
+};
+
+User.attach = (req, res) => {
+  const data = req.body;
+  console.log(data);
+  try {
+    const query = "nebula query";
+    const includeData = {
+      ok: true,
+      ...data,
+      query,
+    };
+    broker
+      .send(JSON.stringify(includeData))
+      .then(result => {
+        dev.log(result)
+      })
+      .catch((e) => {
+        dev.log(e);
+      });
+    res.status(200).json();
   } catch (e) {}
 };
 

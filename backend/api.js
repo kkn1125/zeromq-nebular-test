@@ -2,6 +2,10 @@
 const path = require("path");
 const dotenv = require("dotenv");
 const mode = process.env.NODE_ENV || "development";
+
+dotenv.config({
+  path: path.join(__dirname, `.env`),
+});
 dotenv.config({
   path: path.join(__dirname, `.env.${mode}`),
 });
@@ -19,6 +23,7 @@ const formDataMiddleWare = multer();
 /* 전역 변수 */
 const host = process.env.HOST;
 const port = process.env.PORT;
+console.log(process.env.HOST);
 
 app.use(formDataMiddleWare.any());
 app.use(cors());

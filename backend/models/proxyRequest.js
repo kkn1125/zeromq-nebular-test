@@ -1,7 +1,7 @@
 const zmq = require("zeromq");
 const { dev } = require("../utils/tools");
 
-class ProxyBroker {
+class ProxyRequest {
   #sock = new zmq.Request();
 
   constructor() {
@@ -21,4 +21,4 @@ class ProxyBroker {
   }
 }
 
-module.exports = ProxyBroker;
+module.exports = ProxyRequest;

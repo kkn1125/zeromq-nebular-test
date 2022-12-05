@@ -2,6 +2,14 @@ const router = require("express");
 const userRouter = router.Router();
 const userService = require("../services/user.service");
 
+/* 서버 모델에 필요한 경로 */
+
+userRouter.post("/enter", (req, res) => {
+  userService.attach(req, res);
+});
+
+/* 기본 CRUD */
+
 userRouter.get("/users", (req, res) => {
   userService.findAll(req, res);
 });

@@ -1,6 +1,18 @@
 import { v4 } from "uuid";
 import axios from "axios";
 
+window.addEventListener("load", async (e) => {
+  const uuid = v4();
+  const result = await axios.post("http://localhost:3000/v1/api/enter", {
+    type: "attach",
+    uuid,
+    locale: navigator.language,
+  });
+
+  const { data } = result;
+  console.log(data);
+});
+
 document.querySelector("#findall").addEventListener("click", () => {
   const uuid = v4();
   document.querySelector("#result").innerHTML = "loading...";
