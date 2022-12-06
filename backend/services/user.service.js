@@ -10,6 +10,26 @@ const encoder = new TextEncoder();
 let index = 0;
 // let method = null;
 
+User.attach = (req, res) => {
+  const data = req.body;
+  dev.preffix = "attach start";
+  dev.log(data);
+  try {
+    broker
+      .send(JSON.stringify(data))
+      .then((result) => {
+        dev.preffix = "broker receive";
+        dev.log(result);
+      })
+      .catch((e) => {
+        dev.log(e);
+      });
+    res.status(200).json();
+  } catch (e) {
+    console.log(e)
+  }
+};
+
 User.findAll = async (req, res) => {
   try {
     dev.log("Query: ", req.query);
@@ -51,28 +71,6 @@ User.findOne = async (req, res) => {
       query,
       ...content,
     });
-  } catch (e) {}
-};
-
-User.attach = (req, res) => {
-  const data = req.body;
-  console.log(data);
-  try {
-    const query = "nebula query";
-    const includeData = {
-      ok: true,
-      ...data,
-      query,
-    };
-    broker
-      .send(JSON.stringify(includeData))
-      .then(result => {
-        dev.log(result)
-      })
-      .catch((e) => {
-        dev.log(e);
-      });
-    res.status(200).json();
   } catch (e) {}
 };
 

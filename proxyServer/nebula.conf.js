@@ -16,7 +16,7 @@ console.log(process.env.SERVERS);
 console.log(process.env.USERNAME);
 console.log(process.env.PASSWORD);
 console.log(process.env.SPACE);
-dev.log("POOL %d개 생성", process.env.POOLSIZE);
+dev.log(`POOL ${process.env.POOLSIZE}개 생성`);
 console.log(process.env.BUFFERSIZE);
 console.log(process.env.EXECUTETIMEOUT);
 console.log(process.env.PINGINTERVAL);

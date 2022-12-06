@@ -7,8 +7,9 @@ Object.assign(
       const wrap = function (...arg) {
         value.call(
           console,
-          `🚀 [${dev.preffix || preffix} DEV] ::>`,
+          `🚀 [${dev.preffix || preffix} DEV] ::>\n`,
           ...arg,
+          "\n",
           `<:: (${new Date().toLocaleDateString("ko")})`
         );
         dev.preffix = "";
