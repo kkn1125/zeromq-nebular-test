@@ -3,13 +3,18 @@ const NEBULA = require("@nebula-contrib/nebula-nodejs");
 const { dev } = require("../backend/utils/tools");
 
 const queries = [
+  /* Tags */
+  `CREATE TAG IF NOT EXISTS pools (locale STRING)`,
+  `CREATE TAG IF NOT EXISTS pool_socket (url STRING, port INT, live_status BOOL, cpu_usage float, mem_usage float)`,
+  `CREATE TAG IF NOT EXISTS pool_publish (url STRING, port INT, live_status BOOL)`,
   `CREATE TAG IF NOT EXISTS space (name STRING, volume FLOAT, owner STRING, max_users INT, max_boservers INT, max_managers INT)`,
   `CREATE TAG IF NOT EXISTS channel (name STRING)`,
   `CREATE TAG IF NOT EXISTS user (uuid STRING, email STRING)`,
+  /* Edges */
+  `CREATE EDGE IF NOT EXISTS socket (port INT, connect_status BOOL)`,
+  `CREATE EDGE IF NOT EXISTS child_pool (name STRING, sequence INT)`,
   `CREATE EDGE IF NOT EXISTS attach (sequence INT, type STRING)`,
   `CREATE EDGE IF NOT EXISTS allocation (type STRING)`,
-  `CREATE TAG IF NOT EXISTS pool_socket (url STRING, port INT, live_status BOOL, cpu_usage float, mem_usage float)`,
-  `CREATE TAG IF NOT EXISTS pool_publish (url STRING, port INT, live_status BOOL)`,
 ];
 
 class Client {
@@ -22,21 +27,9 @@ class Client {
   }
 
   async initialSpace() {
-    // `
-    // CREATE SPACE
-    // IF NOT EXISTS server
-    // (
-    //   partition_num = 15,
-    //   replica_factor = 1,
-    //   vid_type = FIXED_STRING(50)
-    // )
-    // `
-    // await this.#client.execute(`CREATE TAG IF NOT EXISTS player (name string, age int)`);
-    // await this.#client.execute(`CREATE TAG IF NOT EXISTS team (name string)`);
+    /* 초기화 쿼리 실행 */
     for (let query of queries) {
       await this.#client.execute(query);
-      dev.preffix = `QUERY`;
-      dev.log(`query: ${query} << done!`);
     }
   }
 
@@ -87,7 +80,7 @@ class Client {
   }
 }
 
-module.exports = Client;
+module.exports = new Client();
 
 // connection is ready for executing command
 

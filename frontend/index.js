@@ -1,24 +1,31 @@
 import { v4 } from "uuid";
 import axios from "axios";
+import Storage from "./src/model/Storage";
+
+const storage = new Storage();
 
 window.addEventListener("load", async (e) => {
-  const uuid = v4();
   const result = await axios.post("http://localhost:3000/v1/api/enter", {
     type: "attach",
-    uuid,
-    locale: navigator.language,
+    uuid: storage.uuid,
+    locale: storage.locale,
   });
 
   const { data } = result;
   console.log(data);
 });
 
+window.addEventListener("visibilitychange", async (e) => {
+  axios.post("http://localhost:3000/v1/api/logout", {
+    uuid: storage.uuid,
+  });
+});
+
 document.querySelector("#findall").addEventListener("click", () => {
-  const uuid = v4();
   document.querySelector("#result").innerHTML = "loading...";
   axios
     .get("http://localhost:3000/v1/api/users", {
-      params: { uuid: uuid, query: "nebula query" },
+      params: { uuid: storage.uuid },
     })
     .then((result) => {
       const { data } = result;
@@ -31,11 +38,10 @@ document.querySelector("#findall").addEventListener("click", () => {
 });
 
 document.querySelector("#findone").addEventListener("click", () => {
-  const uuid = v4();
   document.querySelector("#result").innerHTML = "loading...";
   axios
     .get("http://localhost:3000/v1/api/users/1", {
-      params: { uuid: uuid, query: "nebula query" },
+      params: { uuid: storage.uuid },
     })
     .then((result) => {
       const { data } = result;

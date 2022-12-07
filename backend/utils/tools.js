@@ -1,5 +1,11 @@
 const dev = function () {};
 const preffix = "Client";
+
+dev.alias = function (preffix) {
+  dev.preffix = preffix;
+  return dev;
+};
+
 Object.assign(
   dev,
   Object.fromEntries(

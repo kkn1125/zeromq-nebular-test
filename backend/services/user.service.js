@@ -22,11 +22,14 @@ User.attach = (req, res) => {
         dev.log(result);
       })
       .catch((e) => {
-        dev.log(e);
+        dev.preffix = "ERROR";
+        dev.log(e.code);
+        broker.retry();
       });
     res.status(200).json();
   } catch (e) {
-    console.log(e)
+    broker.retry();
+    console.log(e);
   }
 };
 

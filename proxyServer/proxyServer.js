@@ -4,12 +4,14 @@
 
 const zmq = require("zeromq");
 const { dev } = require("../backend/utils/tools");
-const Client = require("./nebula.db");
+const Query = require("./Query");
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-const client = new Client();
 const channelLimit = 50;
 const spaceLimit = 50;
+const userLimit = 50;
+const observerLimit = 50;
+const managerLimit = 50;
 let spaceIndex = 1;
 let channelIndex = 1;
 let index = 1;
@@ -22,20 +24,8 @@ const createEmail = () =>
     .join("") +
   "@" +
   domains[parseInt(Math.random() * 3)];
-// console.log(client);
 
-// client.execute("show tags").then((response) => {
-//   dev.preffix = "show tags";
-//   dev.log(response);
-// });
-
-// client
-//   .execute("lookup on player yield properties(vertex) as vertexs")
-//   .then((result) => {
-//     const { vertexs } = result.data;
-//     dev.preffix = "execute";
-//     dev.log(vertexs);
-//   });
+const nebula = new Query();
 
 async function runServer() {
   const sock = new zmq.Reply();
@@ -63,99 +53,195 @@ async function runServer() {
 async function dataProcessor(sock, data) {
   let space = null;
   let channel = null;
-  if (data.type === "attach") {
-    await client.execute(
-      `CREATE TAG INDEX IF NOT EXISTS space_index ON space()`
-    );
-    await client.execute(`REBUILD TAG INDEX space_index`);
 
-    await client.execute(
-      `CREATE TAG INDEX IF NOT EXISTS channel_index ON channel()`
-    );
-    await client.execute(`REBUILD TAG INDEX channel_index`);
-    const spaces = await client.execute(
-      `LOOKUP ON space WHERE space.name != "" YIELD PROPERTIES(VERTEX) AS space`
-    );
-    const channels = await client.execute(
-      `LOOKUP ON channel WHERE channel.name != "" YIELD PROPERTIES(VERTEX) AS channel`
-    );
+  await nebula
+    .type("TAG")
+    .create()
+    .index()
+    .ifNotExists()
+    .target("space")
+    .exec();
+  await nebula.type("TAG").rebuild("space").exec();
+  await nebula
+    .type("TAG")
+    .create()
+    .index()
+    .ifNotExists()
+    .target("channel")
+    .exec();
+  await nebula.type("TAG").rebuild("channel").exec();
+  await nebula.type("TAG").create().index().ifNotExists().target("user").exec();
+  await nebula.type("TAG").rebuild("user").exec();
+  await nebula
+    .type("EDGE")
+    .create()
+    .index()
+    .ifNotExists()
+    .target("allocation")
+    .exec();
+  await nebula.type("EDGE").rebuild("allocation").exec();
+  await nebula
+    .type("EDGE")
+    .create()
+    .index()
+    .ifNotExists()
+    .target("socket")
+    .exec();
+  await nebula.type("EDGE").rebuild("socket").exec();
 
-    space = spaces.data.space.slice(-1)[0];
-    channel = channels.data.channel.slice(-1)[0];
+  let spaces = await nebula
+    .type("TAG")
+    .lookup("space")
+    .properties("space")
+    .exec();
+  let channels = await nebula
+    .type("TAG")
+    .lookup("channel")
+    .properties("channel")
+    .exec();
+  let users = await nebula.type("TAG").lookup("user").properties("user").exec();
+  let allocations = await nebula
+    .type("EDGE")
+    .lookup("allocation")
+    .properties("allocation")
+    .exec();
 
+  spaceIndex = spaces.data.space.length + 1;
+  channelIndex = channels.data.channel.length + 1;
+  index = users.data.user.length + 1;
+
+  dev.alias("test").log(spaces);
+  if (spaces.data.space.length === 0) {
     // space 초기화
-    if (spaces.data.space.length === 0) {
-      dev.log("space count:", spaces.data.space.length);
-      await client.execute(
-        `INSERT VERTEX IF NOT EXISTS space(name) VALUES "space${spaceIndex}": ("space${spaceIndex}")`
-      );
-      dev.log("created space");
-    }
+    dev.log("space count:", spaces.data.space.length);
+    await nebula
+      .type("TAG")
+      .insert()
+      .ifNotExists()
+      .target("space")
+      .keys([
+        "name",
+        "volume",
+        "owner",
+        "max_users",
+        "max_observers",
+        "max_managers",
+      ])
+      .values(`space${spaceIndex}`, [
+        `space${spaceIndex}`,
+        0,
+        "admin",
+        userLimit,
+        observerLimit,
+        managerLimit,
+      ])
+      .exec();
+
+    dev.log("created space");
+    space = spaces.data.space.slice(-1)[0].kvs;
+  } else {
+    // space 여유공간 조회
+    // for (let space of spaces.data.space) {
+    //   space
+    // }
+    space = spaces.data.space.slice(-1)[0].kvs;
+  }
+
+  let countUserInChannel = 0;
+  for (let channel of channels.data.channel) {
+    const allocatedUser = await nebula.findConnectedNodes(channel.kvs.name);
+    countUserInChannel = allocatedUser.data.NODES;
+  }
+
+  if (channels.data.channel.length === 0) {
     // channel 초기화
-    if (channels.data.channel.length === 0) {
-      dev.log("channel count:", channels.data.channel.length);
-      await client.execute(
-        `
-        INSERT VERTEX IF NOT EXISTS channel(name) VALUES "channel${channelIndex}": ("channel${channelIndex}")
-        `
-      );
-      dev.log("created channel");
-      channelIndex++;
-    }
+    dev.log("channel count:", channels.data.channel.length);
+    nebula
+      .type("TAG")
+      .insert()
+      .ifNotExists()
+      .target("channel")
+      .keys(["name"])
+      .values(`channel${channelIndex}`, [`channel${channelIndex}`])
+      .exec();
+    dev.log("created channel");
+    channelIndex++;
+    channel = channels.data.channel.slice(-1)[0].kvs;
+  } else if (countUserInChannel >= space.max_users) {
+    // channel 여유공간 조회
+    // for (let channel of channels.data.channel) {
+    //   channel
+    // }
+    dev.log("channel count:", channels.data.channel.length);
+    nebula
+      .type("TAG")
+      .insert()
+      .ifNotExists()
+      .target("channel")
+      .keys(["name"])
+      .values(`channel${channelIndex}`, [`channel${channelIndex}`])
+      .exec();
+    dev.log("created channel");
+    channelIndex++;
+    channel = channels.data.channel.slice(-1)[0].kvs;
+  } else {
+    channel = channels.data.channel.slice(-1)[0].kvs;
+  }
 
-    if (spaces.data.space.length > spaceLimit) {
-      await client.execute(
-        `
-        INSERT VERTEX IF NOT EXISTS space(name) VALUES "space${spaceIndex}": ("space${spaceIndex}")
-        `
-      );
-      dev.log("created space");
-      spaceIndex++;
-    }
+  dev.alias("Allocation Check").log(allocations);
 
-    if (channels.data.channel.length > channelLimit) {
-      await client.execute(
-        `
-        INSERT VERTEX IF NOT EXISTS channel(name) VALUES "channel${channelIndex}": ("channel${channelIndex}")
-        `
-      );
-      dev.log("created channel");
-      channelIndex++;
-    }
-
-    await client.execute(
-      `
-      INSERT EDGE IF NOT EXISTS attach(sequence, type) VALUES "${channel.name}" -> "${space.name}":(1, "not_full")
-      `
-    );
-    
-    client
-      .execute(
-        `
-      INSERT VERTEX
-      user(uuid, email)
-      VALUES "user${index}": ("${data.uuid}", "${createEmail()}")
-      `
+  if (data.type === "attach") {
+    // space 검사 - space의 유저가 80%이상이면 생성
+    // channel 검사 - channel의 유저가 맥스 넘어가면 채널 생성
+    // 유저는 채널에 할당
+    nebula
+      .type("EDGE")
+      .insert()
+      .ifNotExists()
+      .target("attach")
+      .keys(["sequence", "type"])
+      .values(
+        [[channel.name, space.name]],
+        [[space.name.match(/[0-9]+/)[0], "not_full"]]
       )
-      .then((response) => {
-        console.log(response);
-        client.execute(
-          `
-          INSERT EDGE
-          allocation(type)
-          VALUES "user${index}":
-          `
-        );
-        index++;
-        dev.preffix = "show tags";
-        dev.log(response);
-        returnData(sock, data);
-      });
+      .exec();
+
+    const response = await nebula
+      .type("TAG")
+      .insert()
+      .ifNotExists()
+      .target("user")
+      .keys(["uuid", "email"])
+      .values(`user${index}`, [data.uuid, createEmail()])
+      .exec();
+    dev.alias("User Inserted").log("ok");
+
+    nebula
+      .type("EDGE")
+      .insert()
+      .ifNotExists()
+      .target("allocation")
+      .keys(["type"])
+      .values([[`user${index}`, `${channel.name}`]], [["viewer"]])
+      .exec();
+    dev.alias("Viewer Inserted").log("ok");
+
+    index++;
+    dev.preffix = "show tags";
+    dev.log(response);
+    returnData(sock, data);
   }
 }
 
 async function returnData(sock, data) {
   await sock.send(encoder.encode(JSON.stringify(data)));
 }
+
+/* index 번호 체크용 */
+// setInterval(() => {
+//   dev.alias("next user index").log(index);
+//   dev.alias("next space index").log(spaceIndex);
+//   dev.alias("next channel index").log(channelIndex);
+// }, 3000);
 
 runServer();

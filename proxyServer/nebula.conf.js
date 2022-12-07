@@ -12,14 +12,14 @@ dotenv.config({
   path: path.join(__dirname, `.env.${MODE}`),
 });
 
-console.log(process.env.SERVERS);
-console.log(process.env.USERNAME);
-console.log(process.env.PASSWORD);
-console.log(process.env.SPACE);
+// console.log(process.env.SERVERS);
+// console.log(process.env.USERNAME);
+// console.log(process.env.PASSWORD);
+// console.log(process.env.SPACE);
 dev.log(`POOL ${process.env.POOLSIZE}개 생성`);
-console.log(process.env.BUFFERSIZE);
-console.log(process.env.EXECUTETIMEOUT);
-console.log(process.env.PINGINTERVAL);
+// console.log(process.env.BUFFERSIZE);
+// console.log(process.env.EXECUTETIMEOUT);
+// console.log(process.env.PINGINTERVAL);
 
 const config = {
   servers: [].concat(process.env.SERVERS),

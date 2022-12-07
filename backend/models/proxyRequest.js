@@ -10,8 +10,19 @@ class ProxyRequest {
     this.#sock.connect("tcp://localhost:5555");
   }
 
+  sock() {
+    return this.#sock;
+  }
+
+  retry() {
+    this.#sock.disconnect("tcp://localhost:5555");
+    this.#sock = new zmq.Request();
+    console.log("Connecting to hello world server…");
+    this.#sock.connect("tcp://localhost:5555");
+  }
+
   async send(data) {
-    dev.log('Send Data:', data)
+    dev.log("Send Data:", data);
     await this.#sock.send(data);
     const decoder = new TextDecoder();
     const [result] = await this.#sock.receive();
