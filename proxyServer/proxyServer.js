@@ -25,6 +25,30 @@ const createEmail = () =>
   "@" +
   domains[parseInt(Math.random() * 3)];
 
+const net = require("net");
+const localPort = 5556;
+const remotePort = 5000;
+const remoteAddr = "localhost";
+
+const server = net.createServer(function (socket) {
+  socket.on("data", function (msg) {
+    console.log("**START**");
+    console.log("<< From client to proxy ", msg.toString());
+    const serviceSocket = new net.Socket();
+    serviceSocket.connect(parseInt(remotePort), remoteAddr, function () {
+      console.log(">> From proxy to remote", msg.toString());
+    });
+    serviceSocket.on("data", function (data) {
+      console.log("<< From remote to proxy", data.toString());
+      socket.write(data);
+      console.log(">> From proxy to client");
+    });
+  });
+});
+
+server.listen(localPort);
+console.log("TCP server accepting connection on port: " + localPort);
+
 const nebula = new Query();
 
 async function runServer() {
