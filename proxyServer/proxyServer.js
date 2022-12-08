@@ -4,7 +4,7 @@
 
 const zmq = require("zeromq");
 const { dev } = require("../backend/utils/tools");
-const Query = require("./Query");
+const Query = require("./src/model/Query");
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 const channelLimit = 50;
@@ -25,31 +25,25 @@ const createEmail = () =>
   "@" +
   domains[parseInt(Math.random() * 3)];
 
-const net = require("net");
-const localPort = 5556;
-const remotePort = 5000;
-const remoteAddr = "localhost";
-
-const server = net.createServer(function (socket) {
-  socket.on("data", function (msg) {
-    console.log("**START**");
-    console.log("<< From client to proxy ", msg.toString());
-    const serviceSocket = new net.Socket();
-    serviceSocket.connect(parseInt(remotePort), remoteAddr, function () {
-      console.log(">> From proxy to remote", msg.toString());
-    });
-    serviceSocket.on("data", function (data) {
-      console.log("<< From remote to proxy", data.toString());
-      socket.write(data);
-      console.log(">> From proxy to client");
-    });
-  });
-});
-
-server.listen(localPort);
-console.log("TCP server accepting connection on port: " + localPort);
-
 const nebula = new Query();
+
+// nebula
+//   .type("TAG")
+//   .matchFrom("channels")
+//   .exec()
+//   .then((result) => {
+//     console.log(result);
+//   });
+
+// nebula
+//   .type("TAG")
+//   .matchFrom("channels")
+//   .edge("attach")
+//   .matchTo("spaces")
+//   .exec()
+//   .then((result) => {
+//     console.log(result);
+//   });
 
 async function runServer() {
   const sock = new zmq.Reply();
@@ -78,52 +72,26 @@ async function dataProcessor(sock, data) {
   let space = null;
   let channel = null;
 
-  await nebula
-    .type("TAG")
-    .create()
-    .index()
-    .ifNotExists()
-    .target("space")
-    .exec();
-  await nebula.type("TAG").rebuild("space").exec();
-  await nebula
-    .type("TAG")
-    .create()
-    .index()
-    .ifNotExists()
-    .target("channel")
-    .exec();
-  await nebula.type("TAG").rebuild("channel").exec();
-  await nebula.type("TAG").create().index().ifNotExists().target("user").exec();
-  await nebula.type("TAG").rebuild("user").exec();
-  await nebula
-    .type("EDGE")
-    .create()
-    .index()
-    .ifNotExists()
-    .target("allocation")
-    .exec();
-  await nebula.type("EDGE").rebuild("allocation").exec();
-  await nebula
-    .type("EDGE")
-    .create()
-    .index()
-    .ifNotExists()
-    .target("socket")
-    .exec();
-  await nebula.type("EDGE").rebuild("socket").exec();
-
   let spaces = await nebula
     .type("TAG")
-    .lookup("space")
+    .lookup("spaces")
     .properties("space")
     .exec();
+  // let channels = await nebula
+  //   .type("TAG")
+  //   .lookup("channels")
+  //   .properties("channel")
+  //   .exec();
   let channels = await nebula
     .type("TAG")
-    .lookup("channel")
-    .properties("channel")
+    .returns("channels")
+    .match("users", "allocation", "channels")
     .exec();
-  let users = await nebula.type("TAG").lookup("user").properties("user").exec();
+  let users = await nebula
+    .type("TAG")
+    .lookup("users")
+    .properties("user")
+    .exec();
   let allocations = await nebula
     .type("EDGE")
     .lookup("allocation")
@@ -131,7 +99,7 @@ async function dataProcessor(sock, data) {
     .exec();
 
   spaceIndex = spaces.data.space.length + 1;
-  channelIndex = channels.data.channel.length + 1;
+  channelIndex = channels.data.channels.length + 1;
   index = users.data.user.length + 1;
 
   dev.alias("test").log(spaces);
@@ -142,27 +110,22 @@ async function dataProcessor(sock, data) {
       .type("TAG")
       .insert()
       .ifNotExists()
-      .target("space")
-      .keys([
-        "name",
-        "volume",
-        "owner",
-        "max_users",
-        "max_observers",
-        "max_managers",
-      ])
+      .target("spaces")
+      .keys(["name", "volume", "owner", "limit_users", "limit_channels"])
       .values(`space${spaceIndex}`, [
         `space${spaceIndex}`,
         0,
         "admin",
         userLimit,
-        observerLimit,
-        managerLimit,
+        channelLimit,
       ])
       .exec();
 
     dev.log("created space");
-    space = spaces.data.space.slice(-1)[0].kvs;
+    space = (
+      await nebula.type("TAG").lookup("spaces").properties("space").exec()
+    ).data.space.slice(-1)[0].kvs;
+    console.log(space);
   } else {
     // space 여유공간 조회
     // for (let space of spaces.data.space) {
@@ -172,44 +135,48 @@ async function dataProcessor(sock, data) {
   }
 
   let countUserInChannel = 0;
-  for (let channel of channels.data.channel) {
-    const allocatedUser = await nebula.findConnectedNodes(channel.kvs.name);
+  for (let channel of channels.data.channels) {
+    const allocatedUser = await nebula.subgraph(channel.vid).exec();
+    dev.log(allocatedUser);
     countUserInChannel = allocatedUser.data.NODES;
   }
 
-  if (channels.data.channel.length === 0) {
+  if (channels.data.channels.length === 0) {
     // channel 초기화
-    dev.log("channel count:", channels.data.channel.length);
+    dev.log("channel count:", channels.data.channels.length);
     nebula
       .type("TAG")
       .insert()
       .ifNotExists()
-      .target("channel")
-      .keys(["name"])
-      .values(`channel${channelIndex}`, [`channel${channelIndex}`])
+      .target("channels")
+      .keys(["limit"])
+      .values(`channel${channelIndex}`, [channelLimit])
       .exec();
     dev.log("created channel");
     channelIndex++;
-    channel = channels.data.channel.slice(-1)[0].kvs;
+    channel = (
+      await nebula.type("TAG").lookup("channels").properties("channel").exec()
+    ).data.channel.slice(-1)[0];
+    console.log(channel);
   } else if (countUserInChannel >= space.max_users) {
     // channel 여유공간 조회
-    // for (let channel of channels.data.channel) {
+    // for (let channel of channels.data.channels) {
     //   channel
     // }
-    dev.log("channel count:", channels.data.channel.length);
+    dev.log("channel count:", channels.data.channels.length);
     nebula
       .type("TAG")
       .insert()
       .ifNotExists()
-      .target("channel")
-      .keys(["name"])
-      .values(`channel${channelIndex}`, [`channel${channelIndex}`])
+      .target("channels")
+      .keys(["limit"])
+      .values(`channel${channelIndex}`, [channelLimit])
       .exec();
     dev.log("created channel");
     channelIndex++;
-    channel = channels.data.channel.slice(-1)[0].kvs;
+    channel = channels.data.channels.slice(-1)[0];
   } else {
-    channel = channels.data.channel.slice(-1)[0].kvs;
+    channel = channels.data.channels.slice(-1)[0];
   }
 
   dev.alias("Allocation Check").log(allocations);
@@ -225,8 +192,8 @@ async function dataProcessor(sock, data) {
       .target("attach")
       .keys(["sequence", "type"])
       .values(
-        [[channel.name, space.name]],
-        [[space.name.match(/[0-9]+/)[0], "not_full"]]
+        [[channel.vid, /* -> */ space.name]],
+        [[Number(space.name.match(/[0-9]+/)[0]), "not_full"]]
       )
       .exec();
 
@@ -234,19 +201,21 @@ async function dataProcessor(sock, data) {
       .type("TAG")
       .insert()
       .ifNotExists()
-      .target("user")
+      .target("users")
       .keys(["uuid", "email"])
       .values(`user${index}`, [data.uuid, createEmail()])
       .exec();
     dev.alias("User Inserted").log("ok");
-
     nebula
       .type("EDGE")
       .insert()
       .ifNotExists()
       .target("allocation")
-      .keys(["type"])
-      .values([[`user${index}`, `${channel.name}`]], [["viewer"]])
+      .keys(["type", "status"])
+      .values(
+        [[`user${index}`, `${channels.data.channels.slice(-1)[0].vid}`]],
+        [["viewer", true]]
+      )
       .exec();
     dev.alias("Viewer Inserted").log("ok");
 

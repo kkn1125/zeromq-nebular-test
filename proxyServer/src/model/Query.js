@@ -1,38 +1,48 @@
-const { dev } = require("../backend/utils/tools");
-const client = require("./nebula.db");
+const { dev } = require("../../../backend/utils/tools");
+const client = require("../../nebula.db");
 
 const convertQuerySyntax = (value) =>
   isNaN(value) === true ? `"${value}"` : Number(value);
 
 class Query {
-  #name = "";
+  #flag = "e";
+  // #bridge = false;
   #type = "";
   #index = false;
   #category = "";
   #query = [];
+  #returns = "";
   client;
   constructor() {
-    // this.#type = type;
-    // if (type === "TAG") {
-    //   this.#category = "VERTEX";
-    // } else if (type === "EDGE") {
-    //   this.#category = "EDGE";
-    // }
-    // this.#name = name;
     this.client = client;
   }
   #clearQuery() {
     this.#query = [];
     this.#index = false;
-    this.#name = "";
     this.#type = "";
     this.#category = "";
+    this.#flag = "e";
+    this.#returns = "";
   }
   show(isIndex = false) {
     this.#query.push(`SHOW ${this.#type.toUpperCase()}`);
     if (isIndex) {
       this.#query.push(`INDEXES`);
     }
+    return this;
+  }
+  returns(returns) {
+    this.#returns = returns;
+    return this;
+  }
+  match(first, middle, last) {
+    this.#beforeSearch(first);
+    if (this.#type === "TAG") this.#flag = "v";
+    this.#query.push(
+      `MATCH (${first}:${first})${
+        middle ? `-[${middle}:${middle}]->(${last}:${last})` : ``
+      } RETURN ${this.#returns || (this.#type === "TAG" ? first : middle)}`
+    );
     return this;
   }
   type(type) {
@@ -94,7 +104,11 @@ class Query {
     }
     return this;
   }
+  async #beforeSearch(name) {
+    await this.type(this.#type).rebuild(name).waitExec();
+  }
   lookup(name) {
+    this.#beforeSearch(name);
     this.#query.push(`LOOKUP ON ${name}`);
     return this;
   }
@@ -115,6 +129,16 @@ class Query {
     );
     return this;
   }
+  async waitExec(query) {
+    if (query) {
+      return await this.client.execute(query);
+    } else {
+      const queries = this.#query.join(" ");
+      dev.alias("Before Exec Query Check").log(queries);
+      this.#query = [];
+      return await this.client.execute(queries);
+    }
+  }
   async exec(query) {
     if (query) {
       return await this.client.execute(query);
@@ -124,35 +148,6 @@ class Query {
       this.#clearQuery();
       return await this.client.execute(queries);
     }
-  }
-
-  // async find() {
-  //   await this.client.execute(
-  //     `
-  //     CREATE ${this.#type} INDEX IF NOT EXISTS ${this.#name}_index ON ${
-  //       this.#name
-  //     }()
-  //     `
-  //   );
-  //   await this.client.execute(
-  //     `
-  //     REBUILD ${this.#type} INDEX ${this.#name}_index
-  //     `
-  //   );
-
-  //   return await this.client.execute(
-  //     `LOOKUP ON ${this.#name} YIELD PROPERTIES(${this.#category}) AS ${
-  //       this.#name
-  //     }`
-  //   );
-  // }
-
-  async findConnectedNodes(name) {
-    return await this.client.execute(
-      `
-      GET SUBGRAPH 1 STEPS FROM "${name}" YIELD VERTICES AS NODES
-      `
-    );
   }
 }
 

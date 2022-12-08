@@ -3,18 +3,38 @@ const NEBULA = require("@nebula-contrib/nebula-nodejs");
 const { dev } = require("../backend/utils/tools");
 
 const queries = [
+  /* Spaces */
+  // `CREATE SPACE IF NOT EXISTS server (partition_num=15, replica_factor=1, vid_type=FIXED_STRING(50)) COMMENT="test server"`,
+
   /* Tags */
-  `CREATE TAG IF NOT EXISTS pools (locale STRING)`,
-  `CREATE TAG IF NOT EXISTS pool_socket (url STRING, port INT, live_status BOOL, cpu_usage float, mem_usage float)`,
-  `CREATE TAG IF NOT EXISTS pool_publish (url STRING, port INT, live_status BOOL)`,
-  `CREATE TAG IF NOT EXISTS space (name STRING, volume FLOAT, owner STRING, max_users INT, max_boservers INT, max_managers INT)`,
-  `CREATE TAG IF NOT EXISTS channel (name STRING)`,
-  `CREATE TAG IF NOT EXISTS user (uuid STRING, email STRING)`,
+  `CREATE TAG IF NOT EXISTS locales (limit INT64)`,
+  `CREATE TAG IF NOT EXISTS pool_sockets (url STRING, port INT64, is_live BOOL, cpu_usage FLOAT, memory_usage FLOAT)`,
+  `CREATE TAG IF NOT EXISTS pool_publishers (url STRING, port INT64, is_live BOOL)`,
+  `CREATE TAG IF NOT EXISTS spaces (name STRING, volume FLOAT, owner STRING, limit_users INT64, limit_channels INT64)`,
+  `CREATE TAG IF NOT EXISTS channels (limit INT64)`,
+  `CREATE TAG IF NOT EXISTS users (uuid STRING, email STRING)`,
+
   /* Edges */
-  `CREATE EDGE IF NOT EXISTS socket (port INT, connect_status BOOL)`,
-  `CREATE EDGE IF NOT EXISTS child_pool (name STRING, sequence INT)`,
-  `CREATE EDGE IF NOT EXISTS attach (sequence INT, type STRING)`,
-  `CREATE EDGE IF NOT EXISTS allocation (type STRING)`,
+  `CREATE EDGE IF NOT EXISTS include (sequence INT64)`,
+  `CREATE EDGE IF NOT EXISTS socket (port INT64, is_connect BOOL)`,
+  `CREATE EDGE IF NOT EXISTS pub (port INT64, is_connect BOOL)`,
+  `CREATE EDGE IF NOT EXISTS allocation (type STRING, status BOOL)`,
+  `CREATE EDGE IF NOT EXISTS attach (sequence INT64, type STRING, activate BOOL)`,
+  `CREATE EDGE IF NOT EXISTS sync (is_sync BOOL)`,
+
+  /* Indexes */
+  `CREATE TAG INDEX IF NOT EXISTS locales_index ON locales()`,
+  `CREATE TAG INDEX IF NOT EXISTS pool_sockets_index ON pool_sockets()`,
+  `CREATE TAG INDEX IF NOT EXISTS pool_publishers_index ON pool_publishers()`,
+  `CREATE TAG INDEX IF NOT EXISTS spaces_index ON spaces()`,
+  `CREATE TAG INDEX IF NOT EXISTS channels_index ON channels()`,
+  `CREATE TAG INDEX IF NOT EXISTS users_index ON users()`,
+  `CREATE EDGE INDEX IF NOT EXISTS include_index ON include()`,
+  `CREATE EDGE INDEX IF NOT EXISTS socket_index ON socket()`,
+  `CREATE EDGE INDEX IF NOT EXISTS pub_index ON pub()`,
+  `CREATE EDGE INDEX IF NOT EXISTS allocation_index ON allocation()`,
+  `CREATE EDGE INDEX IF NOT EXISTS attach_index ON attach()`,
+  `CREATE EDGE INDEX IF NOT EXISTS sync_index ON sync()`,
 ];
 
 class Client {
