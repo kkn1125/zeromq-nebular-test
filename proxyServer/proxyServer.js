@@ -178,12 +178,6 @@ async function initialize() {
           `GO FROM "channel1" OVER allocation REVERSELY YIELD id($$) AS user_vid, PROPERTIES($$) AS users, id($^) AS channel_vid | RETURN collect($-.user_vid) AS user_vid, collect($-.users) AS users, collect($-.channel_vid) AS channel_vid`
         )
       ).data;
-      console.log(result);
-      // const result = await (
-      //   await nebula.exec(
-      //     `MATCH (v:channels)-[e:allocation]-(v2:users) WHERE id(v) == "${ch.vid}" RETURN e AS middle, v2 AS end`
-      //   )
-      // ).data;
 
       if (result.end.length >= limit.user) {
       }
