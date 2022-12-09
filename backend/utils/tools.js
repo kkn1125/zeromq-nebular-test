@@ -13,10 +13,11 @@ Object.assign(
       const wrap = function (...arg) {
         value.call(
           console,
-          `🚀 [${dev.preffix || preffix} DEV] ::>\n`,
+          `🚀 [${dev.preffix || preffix || "DEV"}] `,
           ...arg,
-          "\n",
-          `<:: (${new Date().toLocaleDateString("ko")})`
+          `(${new Date().toLocaleDateString("ko", {
+            
+          })})`
         );
         dev.preffix = "";
       };

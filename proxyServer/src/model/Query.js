@@ -5,7 +5,9 @@ const convertQuerySyntax = (value) =>
   isNaN(value) === true ? `"${value}"` : Number(value);
 
 class Query {
+  #clause = false;
   #flag = "e";
+  #matches = { first: "", middle: "", last: "" };
   // #bridge = false;
   #type = "";
   #index = false;
@@ -17,12 +19,16 @@ class Query {
     this.client = client;
   }
   #clearQuery() {
+    this.#clause = false;
     this.#query = [];
     this.#index = false;
     this.#type = "";
     this.#category = "";
     this.#flag = "e";
     this.#returns = "";
+    this.#matches.first = "";
+    this.#matches.middle = "";
+    this.#matches.last = "";
   }
   show(isIndex = false) {
     this.#query.push(`SHOW ${this.#type.toUpperCase()}`);
@@ -31,18 +37,76 @@ class Query {
     }
     return this;
   }
-  returns(returns) {
+  returns(returns, as) {
     this.#returns = returns;
+    this.#clause &&
+      this.#query.splice(
+        this.#query.length - 2,
+        0,
+        (this.#returns + ".").repeat(this.#clause ? 2 : 0) +
+          this.#query.splice(this.#query.length - 2, 1)[0]
+      );
+    this.#query.push(
+      `RETURN ${
+        this.#returns ||
+        (this.#type === "TAG" ? this.#matches.first : this.#matches.middle)
+      }${as ? ` AS ${as}` : ""}`
+    );
     return this;
   }
-  match(first, middle, last) {
-    this.#beforeSearch(first);
-    if (this.#type === "TAG") this.#flag = "v";
+  countReturns(returns, as) {
+    this.#returns = returns;
+    this.#clause &&
+      this.#query.splice(
+        this.#query.length - 2,
+        0,
+        (this.#returns + ".").repeat(this.#clause ? 2 : 0) +
+          this.#query.splice(this.#query.length - 2, 1)[0]
+      );
     this.#query.push(
-      `MATCH (${first}:${first})${
-        middle ? `-[${middle}:${middle}]->(${last}:${last})` : ``
-      } RETURN ${this.#returns || (this.#type === "TAG" ? first : middle)}`
+      `RETURN COUNT(${
+        this.#returns ||
+        (this.#type === "TAG" ? this.#matches.first : this.#matches.middle)
+      })${as ? ` AS ${as}` : ""}`
     );
+    return this;
+  }
+  match() {
+    if (this.#type === "TAG") this.#flag = "v";
+    this.#query.push(`MATCH`);
+    return this;
+  }
+  edge(middle) {
+    this.#matches.middle = middle;
+    this.#query.push(`-[${middle}:${middle}]->`);
+    return this;
+  }
+  vertex(last) {
+    if (!this.#matches.first) this.#matches.first = last;
+    if (this.#matches.first) this.#matches.last = last;
+
+    this.#query.push(`(${last ? `${last}:${last}` : ""})`);
+    return this;
+  }
+  where(field, value) {
+    this.#clause = true;
+    let covered = value;
+    if (isNaN(value)) {
+      covered = `"${value}"`;
+    }
+    this.#query.push(`WHERE`);
+    this.#query.push(field);
+    value && this.#query.push(`==${covered}`);
+    return this;
+  }
+  startsWith(value) {
+    this.#clause = true;
+    let covered = value;
+    if (isNaN(value)) {
+      covered = `"${value}"`;
+    }
+    this.#query.push(`STARTS WITH`);
+    this.#query.push(covered);
     return this;
   }
   type(type) {
@@ -83,9 +147,14 @@ class Query {
     this.#query.push(`(${keys.join(", ")})`);
     return this;
   }
-  values(name, values) {
+  values(...datas) {
+    if (!this.#query.includes("VALUES")) {
+      this.#query.push("VALUES");
+    }
+
     if (this.#type === "EDGE") {
       const temp = [];
+      const [name, values] = datas;
       for (let i = 0; i < name.length; i++) {
         const [nfisrt, nsecond] = name[i];
         const key = `"${nfisrt}"->"${nsecond}"`;
@@ -94,21 +163,23 @@ class Query {
           .join(", ")})`;
         temp.push(`${key}:${value}`);
       }
-      this.#query.push(`VALUES ${temp.join(", ")}`);
+      this.#query.push(`${temp.join(", ")}`);
     } else {
       this.#query.push(
-        `VALUES "${name}":(${values
-          .map((val) => convertQuerySyntax(val))
-          .join(", ")})`
+        datas
+          .map(
+            ([name, values]) =>
+              `"${name}":(${values
+                .map((val) => convertQuerySyntax(val))
+                .join(", ")})`
+          )
+          .join(", ")
       );
     }
+
     return this;
   }
-  async #beforeSearch(name) {
-    await this.type(this.#type).rebuild(name).waitExec();
-  }
   lookup(name) {
-    this.#beforeSearch(name);
     this.#query.push(`LOOKUP ON ${name}`);
     return this;
   }
@@ -139,12 +210,13 @@ class Query {
       return await this.client.execute(queries);
     }
   }
-  async exec(query) {
+  async exec(query, debug = false) {
     if (query) {
+      debug && dev.alias("Instant Exec Query Check").log(query);
       return await this.client.execute(query);
     } else {
       const queries = this.#query.join(" ");
-      dev.alias("Exec Query Check").log(queries);
+      debug && dev.alias("Exec Query Check").log(queries);
       this.#clearQuery();
       return await this.client.execute(queries);
     }
