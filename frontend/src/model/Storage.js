@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { createEmail } from "../utils/tools";
 
 class Storage {
   uuid;
@@ -11,10 +12,9 @@ class Storage {
       localStorage.setItem("user_info", JSON.stringify({}));
     }
     this.apply();
-    if (!this.get().uuid) {
-      this.uuid = v4();
-      this.locale = navigator.language;
-    }
+    this.get().uuid || (this.uuid = v4());
+    this.get().locale || (this.locale = navigator.language);
+    this.get().email || (this.email = createEmail());
     this.save();
   }
   apply() {

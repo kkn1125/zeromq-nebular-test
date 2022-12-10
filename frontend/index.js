@@ -8,17 +8,20 @@ window.addEventListener("load", async (e) => {
   const result = await axios.post("http://localhost:3000/v1/api/enter", {
     type: "attach",
     uuid: storage.uuid,
+    email: storage.email,
     locale: storage.locale,
   });
 
   const { data } = result;
-  console.log(data);
+  dev.log(data);
 });
 
-window.addEventListener("visibilitychange", async (e) => {
-  axios.post("http://localhost:3000/v1/api/logout", {
-    uuid: storage.uuid,
-  });
+window.addEventListener("beforeunload", async (e) => {
+  false &&
+    axios.post("http://localhost:3000/v1/api/logout", {
+      type: "logout",
+      uuid: storage.uuid,
+    });
 });
 
 document.querySelector("#findall").addEventListener("click", () => {

@@ -10,12 +10,12 @@ const encoder = new TextEncoder();
 let index = 0;
 // let method = null;
 
-User.attach = (req, res) => {
+User.attach = async (req, res) => {
   const data = req.body;
   dev.preffix = "attach start";
   dev.log(data);
   try {
-    broker
+    const content = await broker
       .send(JSON.stringify(data))
       .then((result) => {
         dev.preffix = "broker receive";
@@ -26,7 +26,10 @@ User.attach = (req, res) => {
         dev.log(e.code);
         broker.retry();
       });
-    res.status(200).json();
+    res.status(200).json({
+      ok: true,
+      content,
+    });
   } catch (e) {
     broker.retry();
     console.log(e);
@@ -77,6 +80,31 @@ User.findOne = async (req, res) => {
   } catch (e) {}
 };
 
+User.logout = async (req, res) => {
+  const data = req.body;
+
+  try {
+    const content = await broker
+      .send(JSON.stringify(data))
+      .then((result) => {
+        dev.preffix = "broker receive";
+        dev.log(result);
+      })
+      .catch((e) => {
+        dev.preffix = "ERROR";
+        dev.log(e.code);
+        broker.retry();
+      });
+    res.status(200).json({
+      ok: true,
+      content,
+    });
+  } catch (e) {
+    broker.retry();
+    console.log(e);
+  }
+};
+
 User.create = (req, res) => {
   try {
     const query = req.body.query;
@@ -106,4 +134,5 @@ User.delete = (req, res) => {
     });
   } catch (e) {}
 };
+
 module.exports = User;

@@ -5,7 +5,12 @@ const userService = require("../services/user.service");
 /* 서버 모델에 필요한 경로 */
 
 userRouter.post("/enter", (req, res) => {
+  console.log("enter api");
   userService.attach(req, res);
+});
+
+userRouter.post("/logout", (req, res) => {
+  userService.logout(req, res);
 });
 
 /* 기본 CRUD */

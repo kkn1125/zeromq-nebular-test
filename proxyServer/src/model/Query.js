@@ -4,7 +4,49 @@ const client = require("../../nebula.db");
 const convertQuerySyntax = (value) =>
   isNaN(value) === true ? `"${value}"` : Number(value);
 
-class Query {
+class Status {
+  locales = {};
+  pool_sockets = {};
+  pool_publishers = {};
+  spaces = {};
+  channels = {};
+  users = {};
+
+  saveInfo(type, value) {
+    this[type].info = value;
+  }
+
+  saveTypes(type, value) {
+    this[type].vids = value;
+  }
+
+  saveVid(type, value) {
+    this[type].vid = value;
+  }
+
+  getStatus(type) {
+    return this[type];
+  }
+  getInfo(type) {
+    return this[type].info;
+  }
+
+  getVid(type) {
+    if (type === "locales") return this[type].vids;
+    return this[type].vid;
+  }
+
+  getNextVid(type) {
+    if (!this.getVid(type)) {
+      const index = type.match(/s$/).index || type.length;
+      const vid = type.slice(0, index);
+      return vid + (Number(this.getInfo(type).count[0]) + 1);
+    }
+    return this.getVid(type);
+  }
+}
+
+class Query extends Status {
   #clause = false;
   #flag = "e";
   #matches = { first: "", middle: "", last: "" };
@@ -16,6 +58,7 @@ class Query {
   #returns = "";
   client;
   constructor() {
+    super();
     this.client = client;
   }
   #clearQuery() {
