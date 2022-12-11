@@ -98,6 +98,17 @@ async function initialize(data) {
       )
       .exec();
     nebula.saveTypes("locales", ["korea", "america", "japan"]);
+  } else {
+    let locale = "korea";
+    if (data.locale === "ko") {
+      locale = "korea";
+    } else if (data.locale === "en") {
+      locale = "america";
+    } else if (data.locale === "jp") {
+      locale = "japan";
+    }
+    await nebula.exec(`GO FROM "${locale}"`);
+    nebula.saveTypes("locales", ["korea", "america", "japan"]);
   }
   if (Number(poolSockets.count[0]) === 0) {
     await nebula
@@ -125,6 +136,10 @@ async function initialize(data) {
         Number(nebula.getInfo("channels").count[0]) + 1
       })`
     );
+  } else {
+    for (let socket of poolSockets.pool_sockets) {
+      await nebula.exec(`GO FROM "${socket.vid}" OVER include `);
+    }
   }
   if (Number(poolPublishers.count[0]) === 0) {
     await nebula
@@ -183,6 +198,62 @@ async function initialize(data) {
   }
 }
 
+// 0개가 아닐 때 조건에 따라 생성
+async function findUsableGraph() {}
+
+// 인덱싱
+async function indexingGraphs() {}
+
+async function connectNoEdgeVertex(data) {
+  const channels = await (
+    await nebula.exec(`MATCH (v:channels) RETURN v AS channels`)
+  ).data;
+  for (let channel of channels.channels) {
+    const spaces = await (
+      await nebula.exec(
+        `GO FROM "${channel.vid}" OVER attach YIELD PROPERTIES($$) AS spaces`
+      )
+    ).data;
+    if (spaces.spaces.length === 0) {
+      console.log(channel);
+      await nebula
+        .type("EDGE")
+        .insert()
+        .ifNotExists()
+        .keys(["sequence", "type", "activate"])
+        .values(
+          [[channel.vid, nebula.getVid("spaces")]],
+          [[Number(nebula.getVid("spaces").match(/[0-9]+/)[0]), "normal", true]]
+        )
+        .exec();
+    } else {
+      continue;
+    }
+  }
+  const users = await (
+    await nebula.exec(`MATCH (v:users) RETURN v AS users`)
+  ).data;
+  for (let user of users.users) {
+    const channels = await (
+      await nebula.exec(
+        `GO FROM "${user.vid}" OVER allocation YIELD PROPERTIES($$) AS channels`
+      )
+    ).data;
+    if (channels.channels.length === 0) {
+      console.log(user);
+      await nebula
+        .type("EDGE")
+        .insert()
+        .ifNotExists()
+        .keys("type", "status")
+        .values([[user.vid, nebula.getVid("channels")]], [["viewer", true]])
+        .exec();
+    } else {
+      continue;
+    }
+  }
+}
+
 async function checkChannelVolume(data) {
   const channels = nebula.getInfo("channels");
 
@@ -194,6 +265,7 @@ async function checkChannelVolume(data) {
       )}" RETURN COLLECT(v2) AS users, COUNT(v2) AS count`
     )
   ).data;
+
   nebula.saveInfo("users", users);
 
   if (channels.count[0] > 0) {
@@ -226,17 +298,17 @@ async function checkChannelVolume(data) {
         .values([Number(nebula.getInfo("channels").count[0]) + 1, [limit.user]])
         .exec();
 
-      await nebula
-        .type("EDGE")
-        .insert()
-        .ifNotExists()
-        .target("attach")
-        .keys(["sequence", "type", "activate"])
-        .values(
-          [[nebula.getVid("channels"), /* -> */ nebula.getVid("spaces")]],
-          [[Number(nebula.getVid("spaces").match(/[0-9]+/)[0]), "normal", true]]
-        )
-        .exec();
+      // await nebula
+      //   .type("EDGE")
+      //   .insert()
+      //   .ifNotExists()
+      //   .target("attach")
+      //   .keys(["sequence", "type", "activate"])
+      //   .values(
+      //     [[nebula.getVid("channels"), /* -> */ nebula.getVid("spaces")]],
+      //     [[Number(nebula.getVid("spaces").match(/[0-9]+/)[0]), "normal", true]]
+      //   )
+      //   .exec();
     }
   }
 
@@ -258,17 +330,17 @@ async function checkChannelVolume(data) {
       .values([nextUserVid, [data.uuid, data.email]])
       .exec();
 
-    await nebula
-      .type("EDGE")
-      .insert()
-      .ifNotExists()
-      .target("allocation")
-      .keys(["type", "status"])
-      .values(
-        [[nextUserVid, /* -> */ nebula.getVid("channels")]],
-        [["viewer", true]]
-      )
-      .exec();
+    // await nebula
+    //   .type("EDGE")
+    //   .insert()
+    //   .ifNotExists()
+    //   .target("allocation")
+    //   .keys(["type", "status"])
+    //   .values(
+    //     [[nextUserVid, /* -> */ nebula.getVid("channels")]],
+    //     [["viewer", true]]
+    //   )
+    //   .exec();
 
     const currentSocket = await (
       await nebula.exec(
@@ -295,9 +367,23 @@ async function checkChannelVolume(data) {
 }
 
 async function dataProcessor(sock, data) {
+  // 2022-12-12 01:18:49
+  // 0개 일 때 생성하는 로직
+  // 유저 생성
+  // 연결 가능한 채널 탐색
+  // 있으면
+  // 연결 가능한 채널에 유저 연결
+  // 없으면
+  // 채널 생성하고 유저 연결 및 공간에 채널 연결
+  // 유저의 로케일에 맞춰서 소켓 생성(2) 및 연결(3), 로케일과 소켓 연결 (1)
+  // 해당 소켓에 유저 연결
+
   await initialize(data);
+  await findUsableGraph(data); // TODO: 작성해야함, 다른 로직 변경 필요.
+  await indexingGraphs(data); // TODO: 작성해야함, 다른 로직 변경 필요.
   if (data.type === "attach") {
     await checkChannelVolume(data);
+    await connectNoEdgeVertex(data);
     // attach 타입 일 때 user를 소켓에 연결시킨다.
     // 연결시킬 때 풀 소켓의 용량을 점검한다.
 
