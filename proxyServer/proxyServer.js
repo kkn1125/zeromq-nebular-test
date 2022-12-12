@@ -378,9 +378,15 @@ async function dataProcessor(sock, data) {
   // 유저의 로케일에 맞춰서 소켓 생성(2) 및 연결(3), 로케일과 소켓 연결 (1)
   // 해당 소켓에 유저 연결
 
+  // 초기화부
   await initialize(data);
-  await findUsableGraph(data); // TODO: 작성해야함, 다른 로직 변경 필요.
-  await indexingGraphs(data); // TODO: 작성해야함, 다른 로직 변경 필요.
+
+  // 생성부
+  await createVertices(data);
+
+  // 연결부
+  await connectWithEdges(data);
+
   if (data.type === "attach") {
     await checkChannelVolume(data);
     await connectNoEdgeVertex(data);
