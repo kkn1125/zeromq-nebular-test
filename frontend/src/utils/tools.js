@@ -8,4 +8,33 @@ const createEmail = () =>
   "@" +
   domains[parseInt(Math.random() * 3)];
 
-export { createEmail };
+const dev = function () {};
+const preffix = "Client";
+dev.alias = function (preffix) {
+  dev.preffix = preffix;
+  return dev;
+};
+
+Object.assign(
+  dev,
+  Object.fromEntries(
+    Object.entries(console).map(([key, value]) => {
+      const wrap = function (...arg) {
+        value.call(
+          console,
+          `🚀 [${dev.preffix || preffix || "DEV"}] `,
+          ...arg,
+          `(${new Date().toLocaleDateString("ko", {})})`
+        );
+        dev.preffix = "";
+      };
+      if (key === "memory") {
+        return [key, value];
+      } else {
+        return [key, wrap.bind(console)];
+      }
+    })
+  )
+);
+
+export { createEmail, dev };

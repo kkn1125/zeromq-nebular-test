@@ -15,69 +15,24 @@ User.attach = async (req, res) => {
   dev.preffix = "attach start";
   dev.log(data);
   try {
-    const content = await broker
+    await broker
       .send(JSON.stringify(data))
-      .then((result) => {
-        dev.preffix = "broker receive";
-        dev.log(result);
+      .then((contents) => {
+        dev.alias("Broker Receive").log(contents);
+        res.status(200).json({
+          ok: true,
+          contents,
+        });
       })
       .catch((e) => {
         dev.preffix = "ERROR";
         dev.log(e.code);
         broker.retry();
       });
-    res.status(200).json({
-      ok: true,
-      content,
-    });
   } catch (e) {
     broker.retry();
     console.log(e);
   }
-};
-
-User.findAll = async (req, res) => {
-  try {
-    dev.log("Query: ", req.query);
-    const uuid = req.query.uuid;
-    const query = req.query.query;
-    const content = await broker.send(
-      encoder.encode(
-        JSON.stringify({
-          uuid,
-        })
-      )
-    );
-
-    res.status(200).json({
-      ok: true,
-      uuid,
-      query,
-      ...content,
-    });
-  } catch (e) {}
-};
-
-User.findOne = async (req, res) => {
-  try {
-    dev.log("Query: ", req.query);
-    const uuid = req.query.uuid;
-    const query = req.query.query;
-    const content = await broker.send(
-      encoder.encode(
-        JSON.stringify({
-          uuid,
-        })
-      )
-    );
-
-    res.status(200).json({
-      ok: true,
-      uuid,
-      query,
-      ...content,
-    });
-  } catch (e) {}
 };
 
 User.logout = async (req, res) => {
@@ -103,36 +58,6 @@ User.logout = async (req, res) => {
     broker.retry();
     console.log(e);
   }
-};
-
-User.create = (req, res) => {
-  try {
-    const query = req.body.query;
-    res.status(200).json({
-      ok: true,
-      query,
-    });
-  } catch (e) {}
-};
-
-User.update = (req, res) => {
-  try {
-    const query = req.body.query;
-    res.status(200).json({
-      ok: true,
-      query,
-    });
-  } catch (e) {}
-};
-
-User.delete = (req, res) => {
-  try {
-    const query = req.body.query;
-    res.status(200).json({
-      ok: true,
-      query,
-    });
-  } catch (e) {}
 };
 
 module.exports = User;

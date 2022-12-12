@@ -8,11 +8,11 @@ const queries = [
 
   /* Tags */
   `CREATE TAG IF NOT EXISTS locales (limit INT64)`,
-  `CREATE TAG IF NOT EXISTS pool_sockets (url STRING, port INT64, is_live BOOL, cpu_usage FLOAT, memory_usage FLOAT)`,
-  `CREATE TAG IF NOT EXISTS pool_publishers (url STRING, port INT64, is_live BOOL)`,
-  `CREATE TAG IF NOT EXISTS spaces (name STRING, volume FLOAT, owner STRING, limit INT64)`,
+  `CREATE TAG IF NOT EXISTS pool_sockets (url STRING, ip STRING, port INT64, is_live BOOL, cpu_usage FLOAT, memory_usage FLOAT)`,
+  `CREATE TAG IF NOT EXISTS pool_publishers (url STRING, ip STRING, port INT64, is_live BOOL)`,
+  `CREATE TAG IF NOT EXISTS spaces (volume FLOAT, owner STRING, limit INT64)`,
   `CREATE TAG IF NOT EXISTS channels (limit INT64)`,
-  `CREATE TAG IF NOT EXISTS users (uuid STRING, email STRING)`,
+  `CREATE TAG IF NOT EXISTS users (email STRING)`,
 
   /* Edges */
   `CREATE EDGE IF NOT EXISTS include (sequence INT64)`,
