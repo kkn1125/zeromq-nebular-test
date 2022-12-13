@@ -1,6 +1,7 @@
 const config = require("./nebula.conf");
 const NEBULA = require("@nebula-contrib/nebula-nodejs");
-const { dev } = require("../backend/utils/tools");
+const { dev } = require("../../../backend/utils/tools");
+// const { dev } = require("../backend/utils/tools");
 
 const queries = [
   /* Spaces */

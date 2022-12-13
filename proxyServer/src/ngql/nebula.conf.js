@@ -1,6 +1,6 @@
 const path = require("path");
 const dotenv = require("dotenv");
-const { dev } = require("../backend/utils/tools");
+const { dev } = require("../../../backend/utils/tools");
 
 const MODE = process.env.NODE_ENV;
 

@@ -8,10 +8,11 @@
   "version": "1.0.0",
   "main": "proxyServer.js",
   "scripts": {
+    "graph": "rm -f graph.svg && madge -i graph.svg proxyServer.js",
     "test": "jest --detectOpenHandles",
     "dev:proxy": "cross-env NODE_ENV=development CHOKIDAR_USEPOLLING=true nodemon proxyServer.js",
     "prod:proxy": "cross-env NODE_ENV=production CHOKIDAR_USEPOLLING=true nodemon proxyServer/proxyServer.js",
-    "dev": "concurrently --kill-others-on-fail \"bun run dev:proxy\""
+    "dev": "concurrently --kill-others-on-fail \"bun run graph\" \"bun run dev:proxy\""
   },
   "keywords": [],
   "author": "",

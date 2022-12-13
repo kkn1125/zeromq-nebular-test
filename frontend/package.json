@@ -7,7 +7,9 @@
   "license": "ISC",
   "description": "",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development vite --config vite.config.js",
+    "graph": "rm -f graph.svg && madge -i graph.svg index.js",
+    "dev:front": "cross-env NODE_ENV=development vite --config vite.config.js",
+    "dev": "concurrently --kill-others-on-fail \"bun run graph\" \"bun run dev:front\"",
     "prod": "cross-env NODE_ENV=production vite --config vite.config.js"
   },
   "dependencies": {

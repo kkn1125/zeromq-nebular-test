@@ -7,10 +7,11 @@
   "license": "ISC",
   "description": "",
   "scripts": {
+    "graph": "rm -f graph.svg && madge -i graph.svg api.js",
     "dev:api": "cross-env NODE_ENV=development CHOKIDAR_USEPOLLING=true nodemon api.js",
     "prod:api": "cross-env NODE_ENV=production CHOKIDAR_USEPOLLING=true nodemon api.js",
-    "dev": "concurrently --kill-others-on-fail \"npm run dev:api\"",
-    "prod": "concurrently --kill-others-on-fail \"npm run prod:api\""
+    "dev": "concurrently --kill-others-on-fail \"npm run graph\" \"npm run dev:api\"",
+    "prod": "concurrently --kill-others-on-fail \"npm run graph\" \"npm run prod:api\""
   },
   "dependencies": {
     "axios": "^1.2.0",

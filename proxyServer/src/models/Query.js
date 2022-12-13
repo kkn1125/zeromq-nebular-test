@@ -1,5 +1,5 @@
 const { dev } = require("../../../backend/utils/tools");
-const client = require("../../nebula.db");
+const client = require("../ngql/nebula.db");
 
 const convertQuerySyntax = (value) =>
   isNaN(value) === true ? `"${value}"` : Number(value);

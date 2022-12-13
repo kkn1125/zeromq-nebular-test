@@ -55,16 +55,9 @@ async function dataProcessor(sock, data) {
   // 유저의 로케일에 맞춰서 소켓 생성(2) 및 연결(3), 로케일과 소켓 연결 (1)
   // 해당 소켓에 유저 연결
 
-  // 초기화부
-  await queryService.initialize(data);
-
-  // 조회부
-  // await queryService.checkGraphs(data);
-
-  // 연결부
-  // await queryService.connectWithEdges(data);
-
   if (data.type === "attach") {
+    // 초기화부
+    await queryService.initialize(data);
     // 생성부
     const datas = await queryService.createVertex(data);
     Object.assign(resultData, datas);
@@ -74,7 +67,9 @@ async function dataProcessor(sock, data) {
     Object.assign(resultData, datas);
     await returnData(sock, resultData);
   } else if (data.type === "logout") {
-    console.log("logout");
+    const datas = await queryService.logoutUser(data);
+    Object.assign(resultData, datas);
+    await returnData(sock, resultData);
   }
 
   // await returnData(sock, data);
