@@ -1,18 +1,4 @@
 html,
-<<<<<<< HEAD
-body {
-  margin: 0;
-}
-
-body #modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 30%;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-=======
 html body {
   margin: 0;
   height: 100%;
@@ -39,34 +25,17 @@ html .login-window {
   gap: 1rem;
   padding: 2rem;
   box-shadow: 0 0 1rem 0 rgba(17, 17, 17, 0.337254902);
->>>>>>> origin/nebula/backup
   transform: translate(-50%, -50%);
   -webkit-transform: translate(-50%, -50%);
   -moz-transform: translate(-50%, -50%);
   -ms-transform: translate(-50%, -50%);
   -o-transform: translate(-50%, -50%);
-<<<<<<< HEAD
-}
-body #modal #nickname {
-  outline: none;
-  border: 1px solid #ccc;
-  padding: 0.5rem 0.8rem;
-  font-size: 1rem;
-=======
->>>>>>> origin/nebula/backup
   border-radius: 0.5rem;
   -webkit-border-radius: 0.5rem;
   -moz-border-radius: 0.5rem;
   -ms-border-radius: 0.5rem;
   -o-border-radius: 0.5rem;
 }
-<<<<<<< HEAD
-body #modal #password {
-  outline: none;
-  border: 1px solid #ccc;
-  padding: 0.5rem 0.8rem;
-  font-size: 1rem;
-=======
 html .login-window .upper {
   text-transform: uppercase;
 }
@@ -81,28 +50,12 @@ html .login-window input {
   border: 1px solid #ccc;
   padding: 0.5rem 0.8rem;
   outline: none;
->>>>>>> origin/nebula/backup
   border-radius: 0.5rem;
   -webkit-border-radius: 0.5rem;
   -moz-border-radius: 0.5rem;
   -ms-border-radius: 0.5rem;
   -o-border-radius: 0.5rem;
 }
-<<<<<<< HEAD
-body #modal #login {
-  cursor: pointer;
-  border: none;
-  background-color: rgb(56, 136, 211);
-  color: white;
-  padding: 0.5rem 0.8rem;
-  font-size: 1rem;
-}
-body #modal.hide {
-  display: none;
-}
-
-/*# sourceMappingURL=main.css.map */
-=======
 html ul {
   margin: 0;
   display: flex;
@@ -113,4 +66,3 @@ html ul li {
   margin: 0;
   padding: 0;
 }
->>>>>>> origin/nebula/backup

@@ -2,10 +2,10 @@ const path = require("path");
 const dotenv = require("dotenv");
 
 const mode = process.env.NODE_ENV;
-const MODE = process.env.MODE;
 // const __dirname = path.resolve();
+
 dotenv.config({
-  path: path.join(__dirname, `.env.${mode}.${MODE}`),
+  path: path.join(__dirname, `.env.${mode}`),
 });
 
 // mariadb informations

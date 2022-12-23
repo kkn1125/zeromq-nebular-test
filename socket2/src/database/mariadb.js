@@ -1,5 +1,5 @@
-import dbConfig from "./maria.conf.js";
-import maria from "mysql2";
+const dbConfig = require("./maria.conf.js");
+const maria = require("mysql2");
 
 // FIXED: const에서 let으로 변경
 let mariaConnection = null;
@@ -12,26 +12,17 @@ const connectionHandler = () => {
   mariaConnection.connect((error) => {
     start = new Date();
     // if (error) throw error;
-  });
-
-  mariaConnection.on("connect", () => {
-    console.debug("MariaDB is Connected!");
-  });
-
-  mariaConnection.on("error", (errorEvent) => {
-    try {
+    mariaConnection.on("error", (errorEvent) => {
       if (errorEvent.code === "PROTOCOL_CONNECTION_LOST") {
         let end = new Date();
         console.log("종료될때까지 시간", end - start);
         mariaConnection.destroy();
-        setInterval(connectionHandler, 5000);
+        connectionHandler();
       } else {
         throw err;
       }
-    } catch (e) {
-      console.log(e.message);
-      setInterval(connectionHandler, 5000);
-    }
+    });
+    console.debug("MariaDB is Connected!");
   });
 
   return mariaConnection;
@@ -59,4 +50,4 @@ setInterval(keepAlive, 5000);
 
 mariaConnection = connectionHandler(); // NOTICE: mariadb.js 커넥션 유지 / 김경남 EM
 
-export { mariaConnection as sql };
+module.exports.sql = mariaConnection;

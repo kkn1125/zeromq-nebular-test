@@ -1,45 +1,24 @@
-import { convertRegionName, dev } from "../utils/tools.js";
-import { sql } from "../database/mariadb.js";
-import Query from "../models/Query.js";
-import dotenv from "dotenv";
-import path from "path";
-
-const __dirname = path.resolve();
-const MODE = process.env.MODE;
-dotenv.config({
-  path: path.join(__dirname, ".env"),
-});
-if (MODE === "local") {
-  dotenv.config({
-    path: path.join(__dirname, `.env.${MODE}`),
-  });
-} else if (MODE === "physic") {
-  dotenv.config({
-    path: path.join(__dirname, `.env.${MODE}`),
-  });
-} else if (MODE === "prod") {
-  dotenv.config({
-    path: path.join(__dirname, `.env.${MODE}`),
-  });
-}
+const { convertRegionName, dev } = require("../utils/tools.js");
+const { sql } = require("../database/mariadb.js");
+const Query = require("../models/Query.js");
 
 const options = {
   cpu_usage: 80,
   memory_usage: 80,
   ip: {
-    socket: process.env.SOCKET_HOST || "192.168.254.16",
-    publisher: process.env.PUBLISHER_HOST || "192.168.254.16",
+    socket: "192.168.254.16",
+    publisher: "192.168.254.16",
   },
   port: {
     socket: 10000,
     publisher: 20000,
   },
   limit: {
-    locales: 1000,
-    pool_sockets: 50,
-    pool_publishers: 1000,
+    locales: 5,
+    pool_sockets: 500,
+    pool_publishers: 500,
     spaces: 5,
-    channels: 50,
+    channels: 10,
     users: 50,
   },
 };
@@ -93,10 +72,7 @@ async function autoInsertUser(data, locale, dataMap) {
       [data.uuid, "", "", `guest${userPk}`]
     );
     // dev.alias("User Insert Id").log(createUser.insertId);
-    console.log(userPk);
-    console.log(createUser.insertId);
     dataMap.user = Object.assign(dataMap.user || {}, {
-      pk: createUser.insertId,
       uuid: data.uuid,
       email: "",
       password: "",
@@ -530,7 +506,6 @@ Query.attach = async (req, res, next) => {
             ]);
     // console.log(dataMap);
     res.status(200).json(
-      // dataMap
       Object.assign(dataMap, {
         players: readPlayers,
       })
@@ -581,10 +556,7 @@ Query.login = async (req, res, next) => {
 
     const [readPlayers] = await sql
       .promise()
-      .query(
-        `SELECT * FROM locations LEFT JOIN users ON users.id = locations.user_id WHERE users.id = ?`,
-        [pk]
-      );
+      .query(playersQueries, [space_id, channel_id]);
     // console.log("login players", readPlayers);
     // const data = await sql.promise().query(`SELECT 1`);
     res.status(200).json({
@@ -622,9 +594,8 @@ Query.logout = async (req, res, next) => {
               userInfo[0].channel_id,
             ]);
     // const data = await sql.promise().query(`SELECT 1`);
-    console.log("logout players", readPlayers);
+    // console.log("logout players", readPlayers);
     res.status(200).json({
-      ok: true,
       players: readPlayers,
     });
   } catch (e) {
@@ -661,14 +632,14 @@ Query.updateLocation = async (req, res, next) => {
     //     ? [[]]
     //     : await sql.promise().query(playersQueries, [space, channel]);
 
-    res.status(200).json({
-      ok: true,
-      // players: readPlayers,
-    });
+    // res.status(200).json({
+    //   ok: true,
+    //   // players: readPlayers,
+    // });
   } catch (e) {
-    res.status(500).json({
-      ok: false,
-    });
+    // res.status(500).json({
+    //   ok: false,
+    // });
   }
 };
 
@@ -724,4 +695,4 @@ Query.findUsers = async (req, res, next) => {
 
 const queryService = Query;
 
-export default queryService;
+module.exports = queryService;
