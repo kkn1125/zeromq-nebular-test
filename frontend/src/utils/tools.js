@@ -22,9 +22,26 @@ Object.assign(
       const wrap = function (...arg) {
         value.call(
           console,
+<<<<<<< HEAD
           `🚀 [${dev.preffix || preffix || "DEV"}] `,
           ...arg,
           `(${new Date().toLocaleDateString("ko", {})})`
+=======
+          `🚀 [${dev.preffix || preffix || "DEV"}]\n`,
+          ...arg,
+          `(${(function () {
+            const time = new Date();
+            const h = time.getHours();
+            const m = time.getMinutes();
+            const s = time.getSeconds();
+            const ms = time.getMilliseconds();
+            return `${h.toString().padStart(2, "0")}:${m
+              .toString()
+              .padStart(2, "0")}:${s.toString().padStart(2, "0")}.${ms
+              .toString()
+              .padStart(3, "0")}`;
+          })()})`
+>>>>>>> origin/nebula/backup
         );
         dev.preffix = "";
       };
@@ -37,4 +54,23 @@ Object.assign(
   )
 );
 
+<<<<<<< HEAD
 export { createEmail, dev };
+=======
+const convertRegionName = (locale) => {
+  const regionNameInEnglish = new Intl.DisplayNames(["en"], { type: "region" });
+  const nationName = regionNameInEnglish.of(locale.split("-")[1].toUpperCase());
+  return nationName
+    .split(" ")
+    .reduce(
+      (acc, region, index) =>
+        (acc += index === 0 ? region.toLowerCase() : capitalize(region)),
+      ""
+    );
+};
+
+const capitalize = (words) =>
+  words[0].toUpperCase() + words.slice(1).toLowerCase();
+
+export { createEmail, dev, convertRegionName, capitalize };
+>>>>>>> origin/nebula/backup
