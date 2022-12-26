@@ -5,7 +5,7 @@ const mode = process.env.NODE_ENV;
 const MODE = process.env.MODE;
 // const __dirname = path.resolve();
 dotenv.config({
-  path: path.join(__dirname, `.env.${mode}.${MODE}`),
+  path: path.join(path.resolve(), `.env.${mode}.${MODE}`),
 });
 
 // mariadb informations
